@@ -83,7 +83,7 @@ error_mat = pd.DataFrame(train_ap.reset_index().groupby(['Dept','Store']).apply(
 error_mat = error_mat.astype({'Dept':int,'Store':int})
 
 
-# In[13]:
+# In[15]:
 
 
 #def bkapp(doc):
@@ -132,7 +132,7 @@ plot.xaxis.ticker = DaysTicker(days=[1])
 plot.xaxis.major_label_orientation = pi/4
 
 error = round(error_table.loc[s,d][0],2)
-error_text_place = Div(text='WMAE = '+ str(error))
+error_text_place.text = '<b>(Weighted Mean Absolute Error) WMAE = ' + str(error)
 
 # Define lines
 preds_line_train = plot.line(x= 'Date',
@@ -252,7 +252,7 @@ def tap_callback(attr,old,new):
 
         source_test.data = new_test_data
 
-        error_text_place.text = 'WMAE = ' + str(round(error_table.loc[s,d][0],2))
+        error_text_place.text = '<b>(Weighted Mean Absolute Error) WMAE = ' + str(round(error_table.loc[s,d][0],2))
 
 
         sales_min = min(0,min(ap.loc[s,d].Weekly_Sales),min(ap.loc[s,d].preds))
@@ -271,18 +271,21 @@ source_error.selected.on_change('indices',tap_callback)
 ####
 
 
+header = Div(text = '<b>Walmart Sales Forecasting', style = {'font-size':'200%','color':'blue'})
 
+readme1 = Div(text = 'Click on the heatmap to see the sales and forecast for the Store-Department pair.<br>Tap the legend to <i>mute</i> lines',
+             style = {'font-size':'150%'})
 
 
 #Layout   
-layout = column(plot,error_text_place,hm)
+layout = column(header,readme1,error_text_place,plot,hm)
 
 #    doc.add_root(layout)
 curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
 
 
-# In[14]:
+# In[16]:
 
 
 #show(bkapp)
