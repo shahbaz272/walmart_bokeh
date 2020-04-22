@@ -26,7 +26,7 @@ import numpy as np
 # In[2]:
 
 
-#output_notebook()
+output_notebook()
 
 
 # In[3]:
@@ -40,9 +40,9 @@ def error(preds,org,weights):
 # In[4]:
 
 
-all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
+#all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
     
-#all_preds = pd.read_csv('walmart_sales_prediction_bokeh.csv',parse_dates=[0])
+all_preds = pd.read_csv('walmart_sales_prediction_bokeh.csv',parse_dates=[0])
 
 
 # In[5]:
@@ -83,10 +83,8 @@ error_mat = pd.DataFrame(train_ap.reset_index().groupby(['Dept','Store']).apply(
 error_mat = error_mat.astype({'Dept':int,'Store':int})
 
 
-# In[15]:
+# In[11]:
 
-
-#def bkapp(doc):
 
 #Define data sources
 s = 1
@@ -132,7 +130,7 @@ plot.xaxis.ticker = DaysTicker(days=[1])
 plot.xaxis.major_label_orientation = pi/4
 
 error = round(error_table.loc[s,d][0],2)
-error_text_place.text = '<b>(Weighted Mean Absolute Error) WMAE = ' + str(error)
+error_text_place = Div(text = '<b>(Weighted Mean Absolute Error) WMAE = ' + str(error))
 
 # Define lines
 preds_line_train = plot.line(x= 'Date',
@@ -285,7 +283,7 @@ curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
 
 
-# In[16]:
+# In[12]:
 
 
 #show(bkapp)
