@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[4]:
+# In[5]:
 
 
 from bokeh.layouts import column,widgetbox,row
 from bokeh.models import ColumnDataSource, Slider, HoverTool,CrosshairTool,LinearColorMapper, TapTool
 from bokeh.plotting import figure
 from bokeh.themes import Theme
-from bokeh.io import show, output_notebook
+from bokeh.io import show, output_notebook,curdoc
 from bokeh.models import DatetimeTickFormatter,Div,NumeralTickFormatter
 from bokeh.models.tickers import DaysTicker,SingleIntervalTicker
 from bokeh.application.handlers import FunctionHandler
@@ -16,6 +16,7 @@ from bokeh.application import Application
 
 from math import pi
 
+from os.path import join, dirname
 
 
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ import pandas as pd
 import numpy as np
 
 
-# In[2]:
+# In[6]:
 
 
 def error(preds,org,weights):
