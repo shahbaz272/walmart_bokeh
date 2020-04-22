@@ -73,12 +73,6 @@ test_ap = ap.loc[ap.type=='Test']
 # In[ ]:
 
 
-total_error = error(train_ap.preds,train_ap.Weekly_Sales,train_ap.IsHoliday)
-
-
-# In[ ]:
-
-
 error_table = pd.DataFrame(train_ap.reset_index().groupby(['Store','Dept']).apply(lambda x: error(x['preds'],x['Weekly_Sales'],x['IsHoliday'])),columns = ['WMSE'])
 
 
