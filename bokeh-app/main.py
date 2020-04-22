@@ -285,7 +285,7 @@ curdoc().title = 'Walmart Sales Forecasting'
 # In[14]:
 
 
-show(bkapp)
+#show(bkapp)
 
 
 # In[ ]:
