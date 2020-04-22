@@ -7,7 +7,6 @@
 from bokeh.layouts import column,widgetbox,row
 from bokeh.models import ColumnDataSource, Slider, HoverTool,CrosshairTool,LinearColorMapper, TapTool
 from bokeh.plotting import figure
-from bokeh.themes import Theme
 from bokeh.io import show, output_notebook,curdoc
 from bokeh.models import DatetimeTickFormatter,Div,NumeralTickFormatter
 from bokeh.models.tickers import DaysTicker,SingleIntervalTicker
@@ -15,9 +14,6 @@ from bokeh.models.tickers import DaysTicker,SingleIntervalTicker
 from math import pi
 
 from os.path import join, dirname
-
-
-import matplotlib.pyplot as plt
 
 import pandas as pd
 import numpy as np
@@ -272,6 +268,7 @@ layout = column(plot,error_text_place,hm)
     #doc.add_root(layout)
 curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
+<<<<<<< HEAD
 
 
 # In[ ]:
@@ -297,3 +294,5 @@ curdoc().title = 'Walmart Sales Forecasting'
 
 
 
+=======
+>>>>>>> 5fa2a80174787d3691e6918b656daf738356ca7b
