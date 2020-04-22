@@ -26,7 +26,7 @@ import numpy as np
 # In[2]:
 
 
-output_notebook()
+#output_notebook()
 
 
 # In[3]:
