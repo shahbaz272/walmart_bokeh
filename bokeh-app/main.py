@@ -40,9 +40,9 @@ def error(preds,org,weights):
 # In[4]:
 
 
-#all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
+all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
     
-all_preds = pd.read_csv('walmart_sales_prediction_bokeh.csv',parse_dates=[0])
+#all_preds = pd.read_csv('walmart_sales_prediction_bokeh.csv',parse_dates=[0])
 
 
 # In[5]:
