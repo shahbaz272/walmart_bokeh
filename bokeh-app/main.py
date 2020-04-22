@@ -18,9 +18,6 @@ from math import pi
 
 from os.path import join, dirname
 
-
-import matplotlib.pyplot as plt
-
 import pandas as pd
 import numpy as np
 
@@ -271,4 +268,3 @@ layout = column(plot,error_text_place,hm)
     
 curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
-
