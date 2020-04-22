@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[4]:
 
-
-from os.path import join,dirname
 
 from bokeh.layouts import column,widgetbox,row
-from bokeh.models import ColumnDataSource, Slider, HoverTool,CrosshairTool
+from bokeh.models import ColumnDataSource, Slider, HoverTool,CrosshairTool,LinearColorMapper, TapTool
 from bokeh.plotting import figure
 from bokeh.themes import Theme
-from bokeh.io import show, output_notebook, curdoc
+from bokeh.io import show, output_notebook
 from bokeh.models import DatetimeTickFormatter,Div,NumeralTickFormatter
-from bokeh.models.tickers import DaysTicker
+from bokeh.models.tickers import DaysTicker,SingleIntervalTicker
+from bokeh.application.handlers import FunctionHandler
+from bokeh.application import Application
+
 from math import pi
+
+
 
 import matplotlib.pyplot as plt
 
@@ -21,7 +24,7 @@ import pandas as pd
 import numpy as np
 
 
-# In[ ]:
+# In[2]:
 
 
 def error(preds,org,weights):
@@ -29,7 +32,7 @@ def error(preds,org,weights):
     return error
 
 
-# In[ ]:
+# In[3]:
 
 
 all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
@@ -81,10 +84,9 @@ error_table = pd.DataFrame(train_ap.reset_index().groupby(['Store','Dept']).appl
 # In[ ]:
 
 
-s=1
-d=1    
-
-
+#Define data sources
+s = 1
+d = 1
 source_train = ColumnDataSource(data = {
     'Date': train_ap.loc[s,d].Date,
     'IsHoliday' : np.where(train_ap.loc[s,d].IsHoliday==True,train_ap.loc[s,d].Weekly_Sales,None),
@@ -100,23 +102,35 @@ source_test = ColumnDataSource(data = {
     'Which_Holiday' : test_ap.loc[s,d].Which_Holiday
 })
 
+source_error = ColumnDataSource(data = {
+    'Store' : error_mat.Store,
+    'Dept' : error_mat.Dept,
+    'error' : error_mat.WMSE
+})
 
+
+#Define plot ranges    
 sales_min = min(0,min(ap.loc[s,d].Weekly_Sales),min(ap.loc[s,d].preds))
 sales_max = max(max(ap.loc[s,d].Weekly_Sales),max(ap.loc[s,d].preds))
 sales_range = sales_max-sales_min
 
-# Create plots and widgets
+#Define plot properties
 plot = figure(x_axis_label = 'Date (MM/YYYY)',
               y_axis_label='Sales',
               x_axis_type='datetime',
               plot_width=800,
               plot_height=400,
-              y_range = (sales_min,sales_max+sales_range*0.1)
+              y_range = (sales_min,sales_max+sales_range*0.1),
+              title = "Sales predictions for Walmart Store %d, Department %d" % (s,d)
              )
 plot.yaxis[0].formatter = NumeralTickFormatter(format="$ 0.00 a")
 plot.xaxis.ticker = DaysTicker(days=[1])
 plot.xaxis.major_label_orientation = pi/4
 
+error = round(error_table.loc[s,d][0],2)
+error_text_place = Div(text='WMAE = '+ str(error))
+
+# Define lines
 preds_line_train = plot.line(x= 'Date',
           y='preds',
           alpha=0.8,
@@ -124,16 +138,16 @@ preds_line_train = plot.line(x= 'Date',
           line_width=2,
           source=source_train,
           hover_alpha=0.5,
-          legend='Predictions',)
+          legend_label='Predictions',muted_alpha=0.2)
 
 preds_line_test = plot.line(x= 'Date',
           y='preds',
           alpha=0.8,
-          line_color='blue',
+          line_color='green',
           line_width=2,
           source=source_test,
-          hover_alpha=0.8,
-          legend='Predictions',)
+          legend_label='Predictions',muted_alpha=0.2)
+
 
 sales_line = plot.line(x='Date',
           y='Sales',
@@ -143,85 +157,123 @@ sales_line = plot.line(x='Date',
           hover_color='red',
           hover_alpha=0.5,
           line_width=2,
-          legend='Actual Sales')
+          legend_label='Actual Sales',muted_alpha=0.2)
 
+#Define Holiday markers      
 holiday_circles_train = plot.circle(x='Date',
                                     y='IsHoliday',
                                     source=source_train,
-                                    legend = 'Holiday',
+                                    legend_label = 'Holiday',
                                     color='black',
-                                    size=5)
+                                    size=5,muted_alpha=0.2)
 
 holiday_circles_test = plot.circle(x='Date',
                                    y='IsHoliday',
                                    source=source_test,
-                                   legend = 'Holiday',
+                                   legend_label = 'Holiday',
                                    color='black',
-                                   size=5)
+                                   size=5,muted_alpha=0.2)
 
-
-
-
+#Define HoverTool    
 hover_sales_train = HoverTool(tooltips = [('Date','@Date{%Y-%m-%d}'),
-                             ('IsHoliday','@Which_Holiday'),
+                             ('Holiday','@Which_Holiday'),
                              ('Sales','@Sales{$ 0.00 a}'),
                             ('preds','@preds{$ 0.00 a}')], mode='vline',formatters={'@Date':'datetime'}
                  ,renderers = [sales_line])
 
 hover_sales_test = HoverTool(tooltips = [('Date','@Date{%Y-%m-%d}'),
-                             ('IsHoliday','@Which_Holiday'),
+                             ('Holiday','@Which_Holiday'),
                             ('preds','@preds{$ 0.00 a}')], mode='vline',formatters={'@Date':'datetime'}
                  ,renderers = [preds_line_test])
 
 plot.add_tools(hover_sales_train,hover_sales_test)
 plot.add_tools(CrosshairTool())
-
-slider_store = Slider(start=1, end=45, value=1, step=1, title='Store')
-slider_dept = Slider(start=1,end=99,value=1,step=1,title='Dept')
-
-error = round(error_table.loc[s,d][0],2)
-error_text = Div(text='WMAE = '+ str(error))
+plot.legend.click_policy="mute"
 
 
-def callback_slider(attr, old, new):
-    s = slider_store.value
-    d = slider_dept.value
 
-    new_train_data = {
-        'Date': train_ap.loc[s,d].Date,
-        'IsHoliday' : np.where(train_ap.loc[s,d].IsHoliday==True,train_ap.loc[s,d].Weekly_Sales,None),
-        'Sales' : train_ap.loc[s,d].Weekly_Sales,
-        'preds' : train_ap.loc[s,d].preds,
-        'Which_Holiday' : train_ap.loc[s,d].Which_Holiday
-    }
+ #Heatmap
+hm_mapper = LinearColorMapper(palette='Magma256', low=error_mat.WMSE.min(), high=error_mat.WMSE.max())
 
-    source_train.data = new_train_data
+hm = figure(title="Error heatmap",
+           x_axis_label='Department', y_axis_label='Store',
+           plot_width=800, plot_height=400,
+           toolbar_location='below'
+           )
+hm_hover = HoverTool(tooltips = [('Store','@Store'),
+                                ('Department','@Dept'),
+                                ('Error','@error{0.00}')])
 
-    new_test_data = {
-        'Date': test_ap.loc[s,d].Date,
-        'IsHoliday' : np.where(test_ap.loc[s,d].IsHoliday==True,test_ap.loc[s,d].preds,None),
-        'preds' : test_ap.loc[s,d].preds,
-        'Which_Holiday' : test_ap.loc[s,d].Which_Holiday
-    }
+hm.grid.grid_line_color = None
+#hm.yaxis.ticker = SingleIntervalTicker(interval=1)
+hm.axis.major_tick_line_color = None
+#hm.xaxis.major_label_orientation = pi/2
 
-    source_test.data = new_test_data
+hm.rect(x="Dept", y="Store", width=1, height=1,
+   source=source_error,
+   fill_color={'field': 'error', 'transform': hm_mapper},
+   line_color=None,hover_line_color = 'white',
+       hover_color = {'field': 'error', 'transform': hm_mapper})
 
-    error_text.text = 'WMAE = ' + str(round(error_table.loc[s,d][0],2))
+hm.add_tools(hm_hover)
 
 
-    sales_min = min(0,min(ap.loc[s,d].Weekly_Sales),min(ap.loc[s,d].preds))
-    sales_max = max(max(ap.loc[s,d].Weekly_Sales),max(ap.loc[s,d].preds))
-    sales_range = sales_max-sales_min
+#####
+tap = TapTool()
+hm.add_tools(tap)
 
-    plot.y_range.start = sales_min
-    plot.y_range.end = sales_max + sales_range*0.1
+def tap_callback(attr,old,new):
+
+    try:
+        selected_index = source_error.selected.indices[0]
+        s = selected_store = int(error_mat.iloc[selected_index]['Store'])
+        d = selected_dept = int(error_mat.iloc[selected_index]['Dept'])
+
+        new_train_data = {
+            'Date': train_ap.loc[s,d].Date,
+            'IsHoliday' : np.where(train_ap.loc[s,d].IsHoliday==True,train_ap.loc[s,d].Weekly_Sales,None),
+            'Sales' : train_ap.loc[s,d].Weekly_Sales,
+            'preds' : train_ap.loc[s,d].preds,
+            'Which_Holiday' : train_ap.loc[s,d].Which_Holiday
+        }
+
+        source_train.data = new_train_data
+
+        new_test_data = {
+            'Date': test_ap.loc[s,d].Date,
+            'IsHoliday' : np.where(test_ap.loc[s,d].IsHoliday==True,test_ap.loc[s,d].preds,None),
+            'preds' : test_ap.loc[s,d].preds,
+            'Which_Holiday' : test_ap.loc[s,d].Which_Holiday
+        }
+
+        source_test.data = new_test_data
+
+        error_text_place.text = 'WMAE = ' + str(round(error_table.loc[s,d][0],2))
+
+
+        sales_min = min(0,min(ap.loc[s,d].Weekly_Sales),min(ap.loc[s,d].preds))
+        sales_max = max(max(ap.loc[s,d].Weekly_Sales),max(ap.loc[s,d].preds))
+        sales_range = sales_max-sales_min
+
+        plot.y_range.start = sales_min
+        plot.y_range.end = sales_max + sales_range*0.1
+
+        plot.title.text = "Sales predictions for Walmart Store %d, Department %d" % (s,d)
+
+    except IndexError:
+        pass
+
+source_error.selected.on_change('indices',tap_callback)
+####
+
+
+
+
+
+#Layout   
+layout = column(plot,error_text_place,hm)
+
     
-slider_store.on_change('value', callback_slider)
-slider_dept.on_change('value',callback_slider)
-
-
-layout = column(widgetbox(slider_store,slider_dept,error_text), plot)
-
 curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
 
