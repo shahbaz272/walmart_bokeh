@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[5]:
+# In[ ]:
 
 
 from bokeh.layouts import column,widgetbox,row
@@ -11,8 +11,6 @@ from bokeh.themes import Theme
 from bokeh.io import show, output_notebook,curdoc
 from bokeh.models import DatetimeTickFormatter,Div,NumeralTickFormatter
 from bokeh.models.tickers import DaysTicker,SingleIntervalTicker
-from bokeh.application.handlers import FunctionHandler
-from bokeh.application import Application
 
 from math import pi
 
@@ -25,7 +23,7 @@ import pandas as pd
 import numpy as np
 
 
-# In[6]:
+# In[ ]:
 
 
 def error(preds,org,weights):
@@ -33,16 +31,12 @@ def error(preds,org,weights):
     return error
 
 
-# In[3]:
+# In[ ]:
 
 
 all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
 
-
-# In[ ]:
-
-
-
+#all_preds = pd.read_csv('walmart_sales_prediction_bokeh.csv',parse_dates=[0])
 
 
 # In[ ]:
@@ -74,6 +68,13 @@ test_ap = ap.loc[ap.type=='Test']
 
 
 error_table = pd.DataFrame(train_ap.reset_index().groupby(['Store','Dept']).apply(lambda x: error(x['preds'],x['Weekly_Sales'],x['IsHoliday'])),columns = ['WMSE'])
+
+
+# In[ ]:
+
+
+error_mat = pd.DataFrame(train_ap.reset_index().groupby(['Dept','Store']).apply(lambda x: error(x['preds'],x['Weekly_Sales'],x['IsHoliday'])),columns = ['WMSE']).reset_index()
+error_mat = error_mat.astype({'Dept':int,'Store':int})
 
 
 # In[ ]:
@@ -268,7 +269,31 @@ source_error.selected.on_change('indices',tap_callback)
 #Layout   
 layout = column(plot,error_text_place,hm)
 
-    
+    #doc.add_root(layout)
 curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
+
+
+# In[ ]:
+
+
+#show(bkapp)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 
