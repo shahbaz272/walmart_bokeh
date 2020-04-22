@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 from bokeh.layouts import column,widgetbox,row
 from bokeh.models import ColumnDataSource, Slider, HoverTool,CrosshairTool,LinearColorMapper, TapTool
 from bokeh.plotting import figure
+from bokeh.themes import Theme
 from bokeh.io import show, output_notebook,curdoc
 from bokeh.models import DatetimeTickFormatter,Div,NumeralTickFormatter
 from bokeh.models.tickers import DaysTicker,SingleIntervalTicker
@@ -15,11 +16,20 @@ from math import pi
 
 from os.path import join, dirname
 
+
+import matplotlib.pyplot as plt
+
 import pandas as pd
 import numpy as np
 
 
-# In[ ]:
+# In[2]:
+
+
+#output_notebook()
+
+
+# In[3]:
 
 
 def error(preds,org,weights):
@@ -27,15 +37,15 @@ def error(preds,org,weights):
     return error
 
 
-# In[ ]:
+# In[4]:
 
 
 all_preds = pd.read_csv(join(dirname(__file__), 'data/walmart_sales_prediction_bokeh.csv'),parse_dates = [0])
-
+    
 #all_preds = pd.read_csv('walmart_sales_prediction_bokeh.csv',parse_dates=[0])
 
 
-# In[ ]:
+# In[5]:
 
 
 sb_dates = pd.to_datetime(['2010-02-12','2011-02-11','2012-02-10','2013-02-08'])
@@ -52,7 +62,7 @@ all_preds.loc[(np.isin(all_preds[['Date']].values, thanksgiving_dates.values).re
 all_preds.loc[(np.isin(all_preds[['Date']].values, christmas_dates.values).reshape(-1)),'Which_Holiday'] = 'Christmas'
 
 
-# In[ ]:
+# In[6]:
 
 
 ap = all_preds.set_index(['Store','Dept'])
@@ -60,21 +70,23 @@ train_ap = ap.loc[ap.type=='Train']
 test_ap = ap.loc[ap.type=='Test']
 
 
-# In[ ]:
+# In[7]:
 
 
 error_table = pd.DataFrame(train_ap.reset_index().groupby(['Store','Dept']).apply(lambda x: error(x['preds'],x['Weekly_Sales'],x['IsHoliday'])),columns = ['WMSE'])
 
 
-# In[ ]:
+# In[8]:
 
 
 error_mat = pd.DataFrame(train_ap.reset_index().groupby(['Dept','Store']).apply(lambda x: error(x['preds'],x['Weekly_Sales'],x['IsHoliday'])),columns = ['WMSE']).reset_index()
 error_mat = error_mat.astype({'Dept':int,'Store':int})
 
 
-# In[ ]:
+# In[13]:
 
+
+#def bkapp(doc):
 
 #Define data sources
 s = 1
@@ -265,22 +277,15 @@ source_error.selected.on_change('indices',tap_callback)
 #Layout   
 layout = column(plot,error_text_place,hm)
 
-    #doc.add_root(layout)
+#    doc.add_root(layout)
 curdoc().add_root(layout)
 curdoc().title = 'Walmart Sales Forecasting'
-<<<<<<< HEAD
 
 
-# In[ ]:
+# In[14]:
 
 
-#show(bkapp)
-
-
-# In[ ]:
-
-
-
+show(bkapp)
 
 
 # In[ ]:
@@ -294,5 +299,9 @@ curdoc().title = 'Walmart Sales Forecasting'
 
 
 
-=======
->>>>>>> 5fa2a80174787d3691e6918b656daf738356ca7b
+
+# In[ ]:
+
+
+
+
